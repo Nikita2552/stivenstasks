@@ -1,0 +1,59 @@
+#include <iostream>
+#include <vector>
+#include <list>
+#include <cstdlib>
+#include <ctime>
+
+using namespace std;
+
+// Хеш-таблица с упорядоченным хешированием
+class HashTable {
+private:
+    vector<list<int>> table;
+    int size;
+
+public:
+    HashTable(int size) : size(size), table(size) {}
+
+    // Хеш-функция
+    int hash(int key) {
+        return key % size;
+    }
+
+    // Вставка ключа в хеш-таблицу
+    void insert(int key) {
+        int index = hash(key);
+        table[index].push_back(key);
+    }
+
+    // Поиск ключа в хеш-таблице
+    bool search(int key) {
+        int index = hash(key);
+        for (auto it = table[index].begin(); it != table[index].end(); ++it) {
+            if (*it == key) {
+                return true;
+            }
+        }
+        return false;
+    }
+};
+
+int main() {
+    HashTable table(10);
+
+    // Вставка ключей
+    table.insert(5);
+    table.insert(25);
+    table.insert(15);
+    table.insert(35);
+
+    // Поиск ключа
+    int key = 25;
+    if (table.search(key)) {
+        cout << "Ключ " << key << " найден!" << endl;
+    } else {
+        cout << "Ключ " << key << " не найден." << endl;
+    }
+
+    return 0;
+}

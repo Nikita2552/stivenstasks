@@ -1,0 +1,65 @@
+#include <iostream>
+#include <vector>
+#include <cstdlib>
+#include <ctime>
+
+using namespace std;
+
+// Hash table with pseudorandom probing
+class HashTable {
+private:
+    vector<int> table;
+    int size;
+    int seed;
+
+public:
+    HashTable(int size) : size(size), table(size, -1), seed(time(0)) {}
+
+    // Hash function
+    int hash(int key) {
+        return key % size;
+    }
+
+    // Pseudorandom probing sequence generator
+    int probe(int index) {
+        return (index + rand() % size) % size;
+    }
+
+    // Insert a key into the hash table
+    void insert(int key) {
+        int index = hash(key);
+        while (table[index] != -1) {
+            index = probe(index);
+        }
+        table[index] = key;
+    }
+
+    // Search for a key in the hash table
+    bool search(int key) {
+        int index = hash(key);
+        while (table[index] != key && table[index] != -1) {
+            index = probe(index);
+        }
+        return table[index] == key;
+    }
+};
+
+int main() {
+    HashTable table(10);
+
+    // Insert some keys
+    table.insert(5);
+    table.insert(25);
+    table.insert(15);
+    table.insert(35);
+
+    // Search for a key
+    int key = 25;
+    if (table.search(key)) {
+        cout << "Key " << key << " found!" << endl;
+    } else {
+        cout << "Key " << key << " not found." << endl;
+    }
+
+    return 0;
+}

@@ -1,0 +1,221 @@
+Вы (20:17:00): напиши код на с++ для квадратичного пробирования, и для псевдослучайного
+ChatGPT (20:18:02): Конечно! Вот реализация хэш-таблицы на C++ с использованием методологии квадратичного пробирования и псевдослучайного пробирования.
+
+### 1. Квадратичное пробирование
+
+Квадратичное пробирование использует квадратичную функцию для поиска следующего свободного места. Если ключ не может быть помещен в первоначальном хэш-индексе, место для него ищется по формуле:
+
+\[ \text{index} = (h(x) + i^2) \mod \text{table\_size} \]
+
+где \( i \) — номер попытки вставки.
+
+### Код с квадратичным пробированием
+
+cpp
+#include <iostream>
+#include <vector>
+#include <optional>
+
+class QuadraticProbingHashTable {
+private:
+    std::vector<std::optional<int>> table;
+    int tableSize;
+    int currentSize;
+
+    int hashFunction(int key) {
+        return key % tableSize; // Хэш-функция: остаток от деления
+    }
+
+public:
+    QuadraticProbingHashTable(int size) : tableSize(size), currentSize(0) {
+        table.resize(tableSize, std::nullopt);
+    }
+
+    void insert(int key) {
+        if (currentSize == tableSize) {
+            std::cout << "Hash table is full!" << std::endl;
+            return;
+        }
+
+        int index = hashFunction(key);
+        int i = 0;
+        while (table[(index + i * i) % tableSize].has_value()) {
+            i++;
+        }
+        
+        table[(index + i * i) % tableSize] = key;
+        currentSize++;
+    }
+
+    bool search(int key) {
+        int index = hashFunction(key);
+        int i = 0;
+        while (table[(index + i * i) % tableSize].has_value()) {
+            if (table[(index + i * i) % tableSize].value() == key) {
+                return true; // Ключ найден
+            }
+            i++;
+        }
+        return false; // Ключ не найден
+    }
+
+    void remove(int key) {
+        int index = hashFunction(key);
+        int i = 0;
+        while (table[(index + i * i) % tableSize].has_value()) {
+            if (table[(index + i * i) % tableSize].value() == key) {
+                table[(index + i * i) % tableSize] = std::nullopt; // Удаляем ключ
+                currentSize--;
+                return;
+            }
+            i++;
+        }
+        std::cout << "Key not found!" << std::endl;
+    }
+
+    void display() {
+        for (int i = 0; i < tableSize; i++) {
+            if (table[i].has_value()) {
+                std::cout << "Index " << i << ": " << table[i].value() << std::endl;
+            } else {
+                std::cout << "Index " << i << ": empty" << std::endl;
+            }
+        }
+    }
+};
+
+int main() {
+    QuadraticProbingHashTable hTable(10);
+
+    hTable.insert(10);
+    hTable.insert(20);
+    hTable.insert(30);
+    hTable.insert(40);
+    
+    std::cout << "Current hash table:" << std::endl;
+    hTable.display();
+
+    std::cout << "Searching for 20: " << (hTable.search(20) ? "Found" : "Not found") << std::endl;
+
+    hTable.remove(20);
+    std::cout << "After removing 20:" << std::endl;
+    hTable.display();
+
+    return 0;
+}
+
+
+### 2. Псевдослучайное пробирование
+
+В случае псевдослучайного пробирования используется случайная функция для вычисления следующего индекса. Один из подходов — использовать некоторую заранее определенную последовательность случайных чисел.
+
+### Код с псевдослучайным пробированием
+
+cpp
+#include <iostream>
+#include <vector>
+#include <optional>
+#include <random>
+
+class RandomProbingHashTable {
+private:
+    std::vector<std::optional<int>> table;
+    int tableSize;
+    int currentSize;
+
+    int hashFunction(int key) {
+        return key % tableSize; // Хэш-функция: остаток от деления
+    }
+
+    int getNextIndex(int index, int attempt) {
+        // Генерируем случайное смещение
+        std::default_random_engine generator;
+        std::uniform_int_distribution<int> distribution(0, tableSize - 1);
+        return (index + distribution(generator)) % tableSize;
+    }
+
+public:
+    RandomProbingHashTable(int size) : tableSize(size), currentSize(0) {
+        table.resize(tableSize, std::nullopt);
+    }
+
+    void insert(int key) {
+        if (currentSize == tableSize) {
+            std::cout << "Hash table is full!" << std::endl;
+            return;
+        }
+
+        int index = hashFunction(key);
+        int i = 0;
+        while (table[getNextIndex(index, i)].has_value()) {
+            i++;
+        }
+        
+        table[getNextIndex(index, i)] = key;
+        currentSize++;
+    }
+
+    bool search(int key) {
+        int index = hashFunction(key);
+        int i = 0;
+        while (table[getNextIndex(index, i)].has_value()) {
+            if (table[getNextIndex(index, i)].value() == key) {
+                return true; // Ключ найден
+            }
+            i++;
+        }
+        return false; // Ключ не найден
+    }
+
+    void remove(int key) {
+        int index = hashFunction(key);
+        int i = 0;
+        while (table[getNextIndex(index, i)].has_value()) {
+            if (table[getNextIndex(index, i)].value() == key) {
+                table[getNextIndex(index, i)] = std::nullopt; // Удаляем ключ
+                currentSize--;
+                return;
+            }
+            i++;
+        }
+        std::cout << "Key not found!" << std::endl;
+    }
+
+    void display() {
+        for (int i = 0; i < tableSize; i++) {
+            if (table[i].has_value()) {
+                std::cout << "Index " << i << ": " << table[i].value() << std::endl;
+            } else {
+                std::cout << "Index " << i << ": empty" << std::endl;
+            }
+        }
+    }
+};
+
+int main() {
+    RandomProbingHashTable hTable(10);
+
+    hTable.insert(10);
+    hTable.insert(20);
+    hTable.insert(30);
+    hTable.insert(40);
+    
+    std::cout << "Current hash table:" << std::endl;
+    hTable.display();
+
+    std::cout << "Searching for 20: " << (hTable.search(20) ? "Found" : "Not found") << std::endl;
+
+    hTable.remove(20);
+    std::cout << "After removing 20:" << std::endl;
+    hTable.display();
+
+    return 0;
+}
+
+
+### Описание:
+1. Код содержит реализацию хэш-таблицы с использованием как квадратичного пробирования, так и псевдослучайного пробирования.
+2. Каждая версия хэш-таблицы может добавлять, искать и удалять элементы, а также отображать текущее состояние таблицы.
+3. Обратите внимание, что для псевдослучайного пробирования используется стандартная библиотека `<random>`, чтобы случайным образом находить следующие индексы для вставки.
+
+Эти примеры можно компилировать и запускать так же, как и в предыдущих ответах. Вы можете использовать компилятор g++, чтобы создать исполняемый файл и протестировать реализации.КопироватьПоделиться с друзьями
